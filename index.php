@@ -1,5 +1,7 @@
 <?php
 
+session_start();
+
 error_reporting(E_ALL);
 ini_set("display_errors", 1);
 
@@ -21,11 +23,36 @@ $f3->route('GET /', function() {
 //Define a route using parameters
 $f3->route('GET /hello/@name',
     function($f3, $params) {
-    $name = $params['name'];
-    echo "<h1>Hello, $name</h1>";
-}
+        //$name = $params['name'];
+        //echo "<h1>Hello, $name</h1>";
+
+        $f3->set('name', $params['name']);
+        $template = new Template();
+        echo $template->render('views/hello.html');
+
+    }
 );
 
+$f3->route('GET /hi/@first/@last',
+    function($f3, $params) {
+
+        $f3->set('first', $params['first']);
+        $f3->set('last', $params['last']);
+        $f3->set('message', 'Hi');
+
+        $_SESSION['first'] = $f3->get('first');
+        $_SESSION['last'] = $f3->get('last');
+
+        $template = new Template();
+        echo $template->render('views/hi.html');
+    }
+);
+
+$f3->route('GET /hi-again',
+    function($f3, $params) {
+        echo 'Hi again, '.$_SESSION['first'];
+    }
+);
 //Define a route using parameters
 $f3->route('GET /language/@lang',
     function($f3, $params) {
@@ -38,8 +65,12 @@ $f3->route('GET /language/@lang',
                 echo 'Privet!'; break;
             case 'farsi':
                 echo 'Salam!'; break;
+            //Reroute to another page
+            case 'french':
+                $f3->reroute('/');
+            //404 error
             default:
-                echo 'Hello!';
+                $f3->error(404);
         }
     }
 );
