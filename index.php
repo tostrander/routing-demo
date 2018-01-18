@@ -37,56 +37,70 @@ $f3->set('DEBUG', 3);
 //Define a default route
 $f3->route('GET /',
     function() {
-        echo '<h3>Hello world</h3>';
-        echo '<a href="./page1">Go to Page 1</a>';
+        echo '<h3>My Jewelry Site</h3>';
+        echo '<a href="./shop">Start shopping</a>';
     });
 
 //2. Define an additional route
 //Add .htaccess (config file for Apache)
 //All routes must be registered in project folder, index.php
-//Try It:  Create a page 2
-$f3->route('GET /page1',
+//Try It:  Create an "about" page
+$f3->route('GET /shop',
     function() {
-        echo 'This is page 1';
+        echo '<h1>Start shopping here!</h1>';
+
+        //We could add a list of product categories here
+
+    });
+
+$f3->route('GET /about',
+    function() {
+        echo '<h1>Learn all about us!</h1>';
     });
 
 //3. Routes can have as many levels as we want
-$f3->route('GET /page1/subpage-a',
+$f3->route('GET /about/history',
     function() {
-        echo 'This is page 1, Subpage A';
+        echo "<h1>We've been around for 100 years.</h1>";
+    });
+
+//3b. Routes can have as many levels as we want
+$f3->route('GET /about/media/news',
+    function() {
+        echo "<h1>We're in the news!</h1>";
     });
 
 //4. Use a parameter
-//@first is a "token"
+//@id is a "token"
 //You can pass parameters using @notation, then retrieve values using
 //built in $params array.
 //Note that anonymous function now accepts two parameters:
 //the instance of the base and a $params array
-//In http://tostrander.greenriverdev.com/328/routing-demo/bob, there is no
-//route for bob, so f3 looks for a route that accepts a parameter
-$f3->route('GET /@first',
+//In http://tostrander.greenriverdev.com/328/routing-demo/product/123,
+// there is no route defined for /product/123, so f3 looks for a route
+// that accepts a parameter
+$f3->route('GET /product/@id',
     function($f3, $params) {
 
         echo '<pre>';
         print_r($params);
         echo '</pre>';
-        echo 'Hi, '.$params['first'];
+        echo 'Product '.$params['id'];
     });
 
-
 //5. Rerouting and 404 error
-$f3->route('GET /language/@lang',
+$f3->route('GET /shop/@category',
     function($f3, $params) {
-        switch($params['lang']) {
-            case 'swahili':
-                echo 'Jumbo!'; break;
-            case 'spanish':
-                echo 'Hola!'; break;
-            case 'farsi':
-                echo 'Salam!'; break;
-            case 'english':
-                //Reroute to project home page
-                $f3->reroute('/');
+        switch($params['category']) {
+            case 'necklaces':
+                echo 'Necklaces!'; break;
+            case 'bracelets':
+                echo 'Bracelets!'; break;
+            case 'rings':
+                echo 'Rings!'; break;
+            case 'nose-rings':
+                //Reroute to another page
+                $f3->reroute('/shop/rings');
             default:
                 $f3->error(404);
         }
@@ -96,55 +110,48 @@ $f3->route('GET /language/@lang',
 //Fat-free stores variables in the router that can then be passed
 //around your program. Values are stored in key/value pairs.
 //Primarily used with Fat-free's templating language.
-$f3->route('GET /howdy/@first',
+$f3->route('GET /locations/@city',
     function($f3, $params) {
 
-        $f3->set('firstName', $params['first']);
-        $f3->set('message', 'Howdy');
-
-        //$view = new View();
-        //echo $view->render('pages/howdy.html');
+        $f3->set('city', $params['city']);
+        $f3->set('message', 'View our Stores');
 
         //load a page using a Template
         $template = new Template();
-        echo $template->render('views/howdy.html');
+        echo $template->render('views/stores.html');
     });
 
 //7. Multiple parameters
-//@first and @last are "tokens"
-//Modify howdy.html
-$f3->route('GET /howdy/@first/@last',
+//@city and @state are "tokens"
+//Modify locations.html
+$f3->route('GET /locations/@city/@state',
     function($f3, $params) {
 
-        $f3->set('firstName', $params['first']);
-        $f3->set('lastName', $params['last']);
-        $f3->set('message', 'Howdy');
+        $f3->set('city', $params['city']);
+        $f3->set('state', $params['state']);
+        $f3->set('message', 'View our Stores');
 
         //load a page using a Template
         $template = new Template();
-        echo $template->render('views/howdy.html');
+        echo $template->render('views/stores.html');
     });
 
 //8a. Add data to a session variable so it's available in another page
-$f3->route('GET /hi/@first',
+$f3->route('GET /login/@first',
     function($f3, $params) {
 
-        $f3->set('firstName', $params['first']);
-        $f3->set('message', 'Hi');
+        $f3->set('first', $params['first']);
+        $_SESSION['first'] = $f3->get('first');
 
-        $_SESSION['firstName'] = $f3->get('firstName');
-
-        //load a page using a Template
-        $template = new Template();
-        echo $template->render('views/howdy.html');
+        //Redirect to account page
+        $f3->reroute('/account');
     });
 
 //8b. Grab data from the session variable
-$f3->route('GET /hi2',
+$f3->route('GET /account',
     function() {
-        echo 'Hi again, '.$_SESSION['firstName'];
+        echo 'Welcome, '.$_SESSION['first'];
     });
-
 
 //Run fat-free
 $f3->run();
